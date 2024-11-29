@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #input-area {
+            display: flex;
+            gap: 10px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 5px;
+        }
+        #send-button {
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Chat</h1>
+    <div id="messages"></div>
+    <div id="input-area">
+        <input id="message-input" type="text" placeholder="Введите сообщение" />
+        <button id="send-button">Отправить</button>
+    </div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8080');
+
+        const messagesDiv = document.getElementById('messages');
+        const input = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        let userName = null;
+
+        // Функция для добавления сообщений
+        function addMessage(message, color = 'black') {
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.textContent = message;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // Прокрутка вниз
+        }
+
+        // При открытии соединения запросить имя
+        ws.onopen = () => {
+            userName = prompt('Как вас зовут?');
+            if (userName) {
+                ws.send(JSON.stringify({ type: 'introduce', name: userName }));
+            } else {
+                alert('Имя обязательно для участия в чате.');
+                ws.close(); // Закрываем соединение, если имя не введено
+            }
+        };
+
+        // Обработка входящих сообщений
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'message') {
+                addMessage(data.message, data.color || 'black'); // Отображение с цветом
+            } else if (data.type === 'info') {
+                addMessage(`Системное сообщение: ${data.message}`, 'gray');
+            }
+        };
+
+        // Отправка сообщений
+        sendButton.addEventListener('click', () => {
+            const message = input.value.trim();
+            if (message) {
+                ws.send(JSON.stringify({ type: 'message', message }));
+                input.value = ''; // Очистка поля ввода
+            }
+        });
+
+        // Отправка по нажатию Enter
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click(); // Имитируем нажатие кнопки
+            }
+        });
+
+        // Обработка ошибок
+        ws.onerror = (error) => {
+            console.error('WebSocket ошибка:', error);
+            addMessage('Ошибка соединения с сервером.', 'red');
+        };
+    </script>
+</body>
+</html>
