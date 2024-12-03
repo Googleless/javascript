@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .note {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    .note h3 {
+      margin: 0 0 10px;
+    }
+    .form-container {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>All Notes</h1>
+
+  <div class="form-container">
+    <h2>Create a New Note</h2>
+    <form action="/note" method="POST">
+      <input type="text" name="title" placeholder="Note Title" required><br><br>
+      <textarea name="content" placeholder="Note Content" required></textarea><br><br>
+      <button type="submit">Create Note</button>
+    </form>
+  </div>
+
+  <div>
+    <h2>Notes List</h2>
+    <% if (notes.length > 0) { %>
+      <% notes.forEach(note => { %>
+        <div class="note">
+          <h3><%= note.title %></h3>
+          <p><%= note.content %></p>
+          <p><strong>Created:</strong> <%= note.created %></p>
+          <p><strong>Last Changed:</strong> <%= note.changed %></p>
+          <form action="/delete/<%= note.id %>" method="POST" style="display:inline;">
+            <button type="submit">Delete</button>
+          </form>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>No notes found.</p>
+    <% } %>
+  </div>
+
+</body>
+</html>
